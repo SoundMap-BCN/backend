@@ -4,74 +4,72 @@ import com.soundmap.backend.dto.SoundResponse;
 import com.soundmap.backend.dto.SoundUploadRequest;
 import com.soundmap.backend.entity.Sound;
 import com.soundmap.backend.entity.User;
+import com.soundmap.backend.mapper.SoundMapper;
 import com.soundmap.backend.repository.SoundRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class SoundService {
 
     private final SoundRepository soundRepository;
+    private final SoundMapper soundMapper;
+
+    @Value("${soundmap.upload-dir}")
+    private String uploadDir;
+
+    public SoundResponse uploadSound(Long userId, MultipartFile file, SoundUploadRequest req) throws IOException {
+
+        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        Path path = Paths.get(uploadDir, filename);
+        Files.write(path, file.getBytes());
+
+        Sound sound = Sound.builder()
+                .title(req.getTitle())
+                .description(req.getDescription())
+                .lat(req.getLat())
+                .lng(req.getLng())
+                .audioFilename(filename)
+                .createdAt(LocalDateTime.now())
+                .user(User.builder().id(userId).build())
+                .build();
+
+        soundRepository.save(sound);
+
+        return soundMapper.toSoundResponse(sound);
+    }
 
     public List<SoundResponse> getAllSounds() {
         return soundRepository.findAll()
                 .stream()
-                .map(this::toDto)
+                .map(soundMapper::toSoundResponse)
                 .toList();
     }
 
-    public SoundResponse getSound(Long id) {
+    public SoundResponse getSoundById(Long id) {
+        Sound sound = soundRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sound no encontrado"));
+        return soundMapper.toSoundResponse(sound);
+    }
+
+    public void deleteSound(Long id, String email) {
         Sound sound = soundRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sound no encontrado"));
 
-        return toDto(sound);
+        soundRepository.delete(sound);
     }
 
-    public SoundResponse uploadSound(SoundUploadRequest request, MultipartFile file, User user) {
-        try {
-            String folder = "uploads/audio/";
-            Files.createDirectories(Paths.get(folder));
-
-            String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(folder + filename);
-
-            Files.write(path, file.getBytes());
-
-            Sound sound = Sound.builder()
-                    .title(request.getTitle())
-                    .description(request.getDescription())
-                    .latitude(request.getLatitude())
-                    .longitude(request.getLongitude())
-                    .filePath(path.toString())
-                    .createdAt(LocalDateTime.now().toString())
-                    .user(user)
-                    .build();
-
-            soundRepository.save(sound);
-
-            return toDto(sound);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error al subir el audio");
-        }
-    }
-
-    private SoundResponse toDto(Sound s) {
-        SoundResponse dto = new SoundResponse();
-        dto.setId(s.getId());
-        dto.setTitle(s.getTitle());
-        dto.setDescription(s.getDescription());
-        dto.setLatitude(s.getLatitude());
-        dto.setLongitude(s.getLongitude());
-        dto.setFilePath(s.getFilePath());
-        dto.setCreatedAt(s.getCreatedAt());
-        dto.setUsername(s.getUser().getUsername());
-        return dto;
+    public byte[] getAudioFile(String filename) throws IOException {
+        Path path = Paths.get(uploadDir, filename);
+        return Files.readAllBytes(path);
     }
 }

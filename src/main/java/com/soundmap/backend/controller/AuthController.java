@@ -10,6 +10,7 @@ import com.soundmap.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,9 +27,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        User user = authService.login(request);
+    public ResponseEntity <LoginResponse> login(@RequestBody LoginRequest request) {
 
+        User user = authService.login(request);
         String token = jwtUtil.generateToken(user.getEmail());
 
         LoginResponse response = new LoginResponse();
@@ -38,7 +39,12 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal User user) {
+    public ResponseEntity<UserResponse> me(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String email = userDetails.getUsername();
+        User user = authService.findByEmail(email);
+
         return ResponseEntity.ok(authService.toUserResponse(user));
     }
 }

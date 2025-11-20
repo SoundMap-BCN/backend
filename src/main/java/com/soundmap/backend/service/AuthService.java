@@ -1,9 +1,10 @@
 package com.soundmap.backend.service;
 
+import com.soundmap.backend.dto.LoginRequest;
 import com.soundmap.backend.dto.RegisterRequest;
 import com.soundmap.backend.dto.UserResponse;
-import com.soundmap.backend.dto.LoginRequest;
 import com.soundmap.backend.entity.User;
+import com.soundmap.backend.mapper.UserMapper;
 import com.soundmap.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +16,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
+    private final UserMapper userMapper;
 
     public UserResponse register(RegisterRequest request) {
 
@@ -27,7 +29,7 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
-        return toUserResponse(user);
+        return userMapper.toUserResponse(user);
     }
 
     public User login(LoginRequest request) {
@@ -42,13 +44,12 @@ public class AuthService {
         return user;
     }
 
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
     public UserResponse toUserResponse(User user) {
-        UserResponse dto = new UserResponse();
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setUsername(user.getUsername());
-        dto.setBio(user.getBio());
-        dto.setAvatarUrl(user.getAvatarUrl());
-        return dto;
+        return userMapper.toUserResponse(user);
     }
 }

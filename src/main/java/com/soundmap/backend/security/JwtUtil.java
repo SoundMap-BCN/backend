@@ -13,7 +13,9 @@ import java.util.Date;
 public class JwtUtil {
 
     // 🔴 Cambia esto por un secreto largo y privado en un .env si quieres
-    private static final String SECRET = "ESTO_ES_UN_SECRETO_MUY_LARGO_PARA_SOUND_MAP_BCN_123456";
+private static final String SECRET =
+        "SOUNDMAP_SUPER_SECRET_KEY_2025_AJKS7823HGGD8273HJSAGD7823HSAGD8723HSAGD7823HSAGD";
+
 
     private static final long EXPIRATION_MS = 1000 * 60 * 60 * 24; // 24h
 

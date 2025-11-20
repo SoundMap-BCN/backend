@@ -3,12 +3,13 @@ package com.soundmap.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "sounds")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Builder
 public class Sound {
 
     @Id
@@ -16,18 +17,23 @@ public class Sound {
     private Long id;
 
     private String title;
-
-    @Column(length = 2000)
     private String description;
 
-    private double latitude;
-    private double longitude;
+    private Double lat;
+    private Double lng;
 
-    private String filePath;
+    // nombre del archivo guardado en /uploads/audio
+    private String audioFilename;
 
-    private String createdAt;
+    private LocalDateTime createdAt;
 
+    // relación con usuario
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
 }
