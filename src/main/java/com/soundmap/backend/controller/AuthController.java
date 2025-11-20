@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:5173")   // 🟣 IMPORTANTE
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -27,7 +28,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity <LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 
         User user = authService.login(request);
         String token = jwtUtil.generateToken(user.getEmail());
@@ -39,9 +40,8 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
+
         String email = userDetails.getUsername();
         User user = authService.findByEmail(email);
 

@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.*;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,16 +35,27 @@ public class SoundService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // generar nombre random
-        String filename = UUID.randomUUID() + "_" + audioFile.getOriginalFilename();
-        File destination = new File(audioUploadPath + filename);
+        // 📁 Crear carpeta "uploads/audio" si no existe
+        Path uploadDir = Paths.get(audioUploadPath);
 
-        if (!destination.getParentFile().exists()) {
-            destination.getParentFile().mkdirs();
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
         }
 
-        audioFile.transferTo(destination);
+        // 🧼 Sanitizar nombre del archivo (nada de espacios ni caracteres raros)
+        String cleanName = audioFile.getOriginalFilename()
+                .replace(" ", "_")
+                .replaceAll("[^a-zA-Z0-9._-]", "");
 
+        // 🎲 Nombre final
+        String filename = UUID.randomUUID() + "_" + cleanName;
+
+        Path targetPath = uploadDir.resolve(filename);
+
+        // 💾 GUARDAR EL ARCHIVO
+        Files.copy(audioFile.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+        // 🗂 GUARDAR EN BD
         Sound sound = Sound.builder()
                 .title(req.getTitle())
                 .description(req.getDescription())
@@ -84,14 +95,15 @@ public class SoundService {
             throw new RuntimeException("No puedes borrar sonidos de otro usuario");
         }
 
-        // borrar fichero
-        File file = new File(audioUploadPath + sound.getAudioFilename());
-        if (file.exists()) file.delete();
+        Path file = Paths.get(audioUploadPath + sound.getAudioFilename());
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException ignored) {}
 
         soundRepository.delete(sound);
     }
 
-    // 🔥 OBTENER AUDIOS DE UN USUARIO
+    // 🔥 AUDIOS DEL USUARIO
     public List<SoundResponse> getByUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
