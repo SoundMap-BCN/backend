@@ -28,34 +28,34 @@ public class SoundService {
     @Value("${upload.audio.path}")
     private String audioUploadPath;
 
-    // 🔥 SUBIR AUDIO
+   
     public SoundResponse uploadSound(SoundUploadRequest req, MultipartFile audioFile, String userEmail)
             throws IOException {
 
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 📁 Crear carpeta "uploads/audio" si no existe
+      
         Path uploadDir = Paths.get(audioUploadPath);
 
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
         }
 
-        // 🧼 Sanitizar nombre del archivo (nada de espacios ni caracteres raros)
+        
         String cleanName = audioFile.getOriginalFilename()
                 .replace(" ", "_")
                 .replaceAll("[^a-zA-Z0-9._-]", "");
 
-        // 🎲 Nombre final
+       
         String filename = UUID.randomUUID() + "_" + cleanName;
 
         Path targetPath = uploadDir.resolve(filename);
 
-        // 💾 GUARDAR EL ARCHIVO
+      
         Files.copy(audioFile.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-        // 🗂 GUARDAR EN BD
+     
         Sound sound = Sound.builder()
                 .title(req.getTitle())
                 .description(req.getDescription())
@@ -70,7 +70,7 @@ public class SoundService {
         return soundMapper.toSoundResponse(sound);
     }
 
-    // 🔥 LISTAR TODO
+   
     public List<SoundResponse> getAll() {
         return soundRepository.findAll()
                 .stream()
@@ -78,7 +78,7 @@ public class SoundService {
                 .toList();
     }
 
-    // 🔥 OBTENER POR ID
+ 
     public SoundResponse getById(Long id) {
         Sound sound = soundRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sonido no encontrado"));
@@ -86,7 +86,7 @@ public class SoundService {
         return soundMapper.toSoundResponse(sound);
     }
 
-    // 🔥 BORRAR
+ 
     public void delete(Long id, String userEmail) {
         Sound sound = soundRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sonido no encontrado"));
@@ -103,7 +103,6 @@ public class SoundService {
         soundRepository.delete(sound);
     }
 
-    // 🔥 AUDIOS DEL USUARIO
     public List<SoundResponse> getByUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));

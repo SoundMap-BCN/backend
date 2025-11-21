@@ -21,7 +21,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
-    // 🟣 PERMITIR FRONTEND VITE (CORS)
+    
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -37,7 +37,7 @@ public class SecurityConfig {
         return source;
     }
 
-    // 🟣 SECURITY COMPLETA
+    
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -46,19 +46,19 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
 
-                        // LOGIN + REGISTER libre
+                        
                         .requestMatchers("/auth/**").permitAll()
 
-                        // AUDIOS PÚBLICOS (solo escuchar)
+                        
                         .requestMatchers("/api/sounds/audio/**").permitAll()
 
-                        // SUBIR AUDIO → autenticado
+                        
                         .requestMatchers("/api/sounds/upload").authenticated()
 
-                        // TODA LA API DE SOUNDS → autenticada
+                       
                         .requestMatchers("/api/sounds/**").authenticated()
 
-                        // RESTO permitido
+                        
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

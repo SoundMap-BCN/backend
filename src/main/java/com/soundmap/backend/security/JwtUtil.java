@@ -12,12 +12,12 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // 🔴 Cambia esto por un secreto largo y privado en un .env si quieres
+
 private static final String SECRET =
         "SOUNDMAP_SUPER_SECRET_KEY_2025_AJKS7823HGGD8273HJSAGD7823HSAGD8723HSAGD7823HSAGD";
 
 
-    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 24; // 24h
+    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 24; 
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));

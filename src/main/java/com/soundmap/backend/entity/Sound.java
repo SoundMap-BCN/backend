@@ -22,12 +22,11 @@ public class Sound {
     private Double lat;
     private Double lng;
 
-    // nombre del archivo guardado en /uploads/audio
     private String audioFilename;
 
     private LocalDateTime createdAt;
 
-    // relación con usuario
+   
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
